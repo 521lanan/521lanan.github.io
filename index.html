@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>俄语单词默写练习</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .word-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .word-info {
+            margin-bottom: 15px;
+        }
+        .meaning {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .part-of-speech {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .correct-answer {
+            font-weight: bold;
+        }
+        .progress {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>俄语单词默写练习</h1>
+    <div class="progress">单词 1/30</div>
+    
+    <div class="word-container">
+        <div class="word-info">
+            <div class="meaning" id="meaning">加载中...</div>
+            <div class="part-of-speech" id="part-of-speech"></div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="请输入俄语单词" autocomplete="off">
+            <button id="check-btn">检查</button>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+    
+    <div class="navigation">
+        <button id="prev-btn" disabled>上一个</button>
+        <button id="next-btn">下一个</button>
+    </div>
+
+    <script>
+        // 俄语单词数据 - 每天修改这30个单词
+        const words = [
+            { meaning: "家庭", partOfSpeech: "名词", word: "семья" },
+            { meaning: "学校", partOfSpeech: "名词", word: "школа" },
+            { meaning: "学生", partOfSpeech: "名词", word: "студент" },
+            { meaning: "老师", partOfSpeech: "名词", word: "учитель" },
+            { meaning: "书", partOfSpeech: "名词", word: "книга" },
+            { meaning: "城市", partOfSpeech: "名词", word: "город" },
+            { meaning: "国家", partOfSpeech: "名词", word: "страна" },
+            { meaning: "语言", partOfSpeech: "名词", word: "язык" },
+            { meaning: "水", partOfSpeech: "名词", word: "вода" },
+            { meaning: "食物", partOfSpeech: "名词", word: "еда" },
+            { meaning: "好", partOfSpeech: "形容词", word: "хороший" },
+            { meaning: "新", partOfSpeech: "形容词", word: "новый" },
+            { meaning: "大", partOfSpeech: "形容词", word: "большой" },
+            { meaning: "小", partOfSpeech: "形容词", word: "маленький" },
+            { meaning: "美丽", partOfSpeech: "形容词", word: "красивый" },
+            { meaning: "去", partOfSpeech: "动词", word: "идти" },
+            { meaning: "来", partOfSpeech: "动词", word: "приходить" },
+            { meaning: "做", partOfSpeech: "动词", word: "делать" },
+            { meaning: "学习", partOfSpeech: "动词", word: "учиться" },
+            { meaning: "读", partOfSpeech: "动词", word: "читать" },
+            { meaning: "写", partOfSpeech: "动词", word: "писать" },
+            { meaning: "说", partOfSpeech: "动词", word: "говорить" },
+            { meaning: "理解", partOfSpeech: "动词", word: "понимать" },
+            { meaning: "知道", partOfSpeech: "动词", word: "знать" },
+            { meaning: "爱", partOfSpeech: "动词", word: "любить" },
+            { meaning: "我", partOfSpeech: "代词", word: "я" },
+            { meaning: "你", partOfSpeech: "代词", word: "ты" },
+            { meaning: "他", partOfSpeech: "代词", word: "он" },
+            { meaning: "她", partOfSpeech: "代词", word: "она" },
+            { meaning: "我们", partOfSpeech: "代词", word: "мы" }
+        ];
+
+        let currentIndex = 0;
+        const meaningElement = document.getElementById('meaning');
+        const partOfSpeechElement = document.getElementById('part-of-speech');
+        const userInputElement = document.getElementById('user-input');
+        const checkBtn = document.getElementById('check-btn');
+        const resultElement = document.getElementById('result');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressElement = document.querySelector('.progress');
+
+        // 显示当前单词
+        function showCurrentWord() {
+            const currentWord = words[currentIndex];
+            meaningElement.textContent = currentWord.meaning;
+            partOfSpeechElement.textContent = currentWord.partOfSpeech;
+            userInputElement.value = '';
+            resultElement.className = 'result';
+            resultElement.style.display = 'none';
+            userInputElement.focus();
+            
+            // 更新进度
+            progressElement.textContent = `单词 ${currentIndex + 1}/${words.length}`;
+            
+            // 更新按钮状态
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === words.length - 1;
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            const userAnswer = userInputElement.value.trim();
+            const correctAnswer = words[currentIndex].word;
+            
+            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+                resultElement.className = 'result correct';
+                resultElement.innerHTML = '正确!';
+            } else {
+                resultElement.className = 'result incorrect';
+                resultElement.innerHTML = `不正确。正确答案是: <span class="correct-answer">${correctAnswer}</span>`;
+            }
+            resultElement.style.display = 'block';
+        }
+
+        // 上一个单词
+        function prevWord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showCurrentWord();
+            }
+        }
+
+        // 下一个单词
+        function nextWord() {
+            if (currentIndex < words.length - 1) {
+                currentIndex++;
+                showCurrentWord();
+            }
+        }
+
+        // 事件监听
+        checkBtn.addEventListener('click', checkAnswer);
+        prevBtn.addEventListener('click', prevWord);
+        nextBtn.addEventListener('click', nextWord);
+        
+        // 按Enter键检查答案
+        userInputElement.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // 初始化
+        showCurrentWord();
+    </script>
+</body>
+</html>
