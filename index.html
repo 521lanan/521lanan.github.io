@@ -22,6 +22,7 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
         }
         .word-info {
             margin-bottom: 15px;
@@ -40,7 +41,7 @@
             gap: 10px;
             margin-bottom: 10px;
         }
-        input[type="text"] {
+        input[type="text"], input[type="file"] {
             flex: 1;
             padding: 10px;
             border: 1px solid #ddd;
@@ -89,66 +90,82 @@
             justify-content: space-between;
             margin-top: 20px;
         }
+        .upload-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f0f8ff;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .show-upload-btn {
+            margin-top: 20px;
+            background-color: #6c757d;
+        }
+        .show-upload-btn:hover {
+            background-color: #5a6268;
+        }
     </style>
 </head>
 <body>
     <h1>俄语单词默写练习</h1>
-    <div class="progress">单词 1/30</div>
     
-    <div class="word-container">
-        <div class="word-info">
-            <div class="meaning" id="meaning">加载中...</div>
-            <div class="part-of-speech" id="part-of-speech"></div>
+    <div id="upload-section" class="upload-container">
+        <div class="upload-area" id="drop-area">
+            <div class="upload-icon">📄</div>
+            <h3>点击或拖拽Excel文件到此处</h3>
+            <p>支持.xlsx和.xls格式的Excel文件</p>
+            <input type="file" id="excel-upload" accept=".xlsx, .xls" style="display: none;">
+            <button id="select-file-btn">选择文件</button>
         </div>
-        
-        <div class="input-container">
-            <input type="text" id="user-input" placeholder="请输入俄语单词" autocomplete="off">
-            <button id="check-btn">检查</button>
-        </div>
-        
-        <div class="result" id="result"></div>
+        <div id="upload-status"></div>
     </div>
     
-    <div class="navigation">
-        <button id="prev-btn" disabled>上一个</button>
-        <button id="next-btn">下一个</button>
+    <div id="practice-section" class="hidden">
+        <div class="progress">单词 1/0</div>
+        
+        <div class="word-container">
+            <div class="word-info">
+                <div class="meaning" id="meaning">请先上传Excel单词表</div>
+                <div class="part-of-speech" id="part-of-speech"></div>
+            </div>
+            
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="请输入俄语单词" autocomplete="off" disabled>
+                <button id="check-btn" disabled>检查</button>
+            </div>
+            
+            <div class="result" id="result"></div>
+        </div>
+        
+        <div class="navigation">
+            <button id="prev-btn" disabled>上一个</button>
+            <button id="next-btn" disabled>下一个</button>
+            <button id="show-upload-btn" class="show-upload-btn">更换单词表</button>
+        </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // 俄语单词数据 - 每天修改这30个单词
-        const words = [
-            { meaning: "家庭", partOfSpeech: "名词", word: "семья" },
-            { meaning: "学校", partOfSpeech: "名词", word: "школа" },
-            { meaning: "学生", partOfSpeech: "名词", word: "студент" },
-            { meaning: "老师", partOfSpeech: "名词", word: "учитель" },
-            { meaning: "书", partOfSpeech: "名词", word: "книга" },
-            { meaning: "城市", partOfSpeech: "名词", word: "город" },
-            { meaning: "国家", partOfSpeech: "名词", word: "страна" },
-            { meaning: "语言", partOfSpeech: "名词", word: "язык" },
-            { meaning: "水", partOfSpeech: "名词", word: "вода" },
-            { meaning: "食物", partOfSpeech: "名词", word: "еда" },
-            { meaning: "好", partOfSpeech: "形容词", word: "хороший" },
-            { meaning: "新", partOfSpeech: "形容词", word: "новый" },
-            { meaning: "大", partOfSpeech: "形容词", word: "большой" },
-            { meaning: "小", partOfSpeech: "形容词", word: "маленький" },
-            { meaning: "美丽", partOfSpeech: "形容词", word: "красивый" },
-            { meaning: "去", partOfSpeech: "动词", word: "идти" },
-            { meaning: "来", partOfSpeech: "动词", word: "приходить" },
-            { meaning: "做", partOfSpeech: "动词", word: "делать" },
-            { meaning: "学习", partOfSpeech: "动词", word: "учиться" },
-            { meaning: "读", partOfSpeech: "动词", word: "читать" },
-            { meaning: "写", partOfSpeech: "动词", word: "писать" },
-            { meaning: "说", partOfSpeech: "动词", word: "говорить" },
-            { meaning: "理解", partOfSpeech: "动词", word: "понимать" },
-            { meaning: "知道", partOfSpeech: "动词", word: "знать" },
-            { meaning: "爱", partOfSpeech: "动词", word: "любить" },
-            { meaning: "我", partOfSpeech: "代词", word: "я" },
-            { meaning: "你", partOfSpeech: "代词", word: "ты" },
-            { meaning: "他", partOfSpeech: "代词", word: "он" },
-            { meaning: "她", partOfSpeech: "代词", word: "она" },
-            { meaning: "我们", partOfSpeech: "代词", word: "мы" }
-        ];
-
+        let words = [];
         let currentIndex = 0;
         const meaningElement = document.getElementById('meaning');
         const partOfSpeechElement = document.getElementById('part-of-speech');
@@ -158,9 +175,103 @@
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const progressElement = document.querySelector('.progress');
+        const excelUpload = document.getElementById('excel-upload');
+        const uploadStatus = document.getElementById('upload-status');
+        const wordContainer = document.querySelector('.word-container');
+        const uploadSection = document.getElementById('upload-section');
+        const practiceSection = document.getElementById('practice-section');
+        const dropArea = document.getElementById('drop-area');
+        const selectFileBtn = document.getElementById('select-file-btn');
+        const showUploadBtn = document.getElementById('show-upload-btn');
+
+        // 点击选择文件按钮
+        selectFileBtn.addEventListener('click', function() {
+            excelUpload.click();
+        });
+
+        // 拖放功能
+        dropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropArea.style.backgroundColor = '#f0f8ff';
+        });
+
+        dropArea.addEventListener('dragleave', function() {
+            dropArea.style.backgroundColor = '';
+        });
+
+        dropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropArea.style.backgroundColor = '';
+            if (e.dataTransfer.files.length) {
+                excelUpload.files = e.dataTransfer.files;
+                handleFileUpload();
+            }
+        });
+
+        // 文件选择变化
+        excelUpload.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload() {
+            const file = excelUpload.files[0];
+            if (!file) return;
+            
+            uploadStatus.innerHTML = `<p>正在处理文件: <strong>${file.name}</strong>...</p>`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // 获取第一个工作表
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // 将工作表转换为JSON
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    // 提取单词数据 (跳过标题行)
+                    words = [];
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (row.length >= 3 && row[0] && row[2]) { // 确保有足够的数据
+                            words.push({
+                                meaning: row[0],
+                                partOfSpeech: row[1] || '未知',
+                                word: row[2]
+                            });
+                        }
+                    }
+                    
+                    if (words.length > 0) {
+                        uploadStatus.innerHTML = `<p>成功导入 <strong>${words.length}</strong> 个单词</p>`;
+                        
+                        // 隐藏上传界面，显示练习界面
+                        uploadSection.classList.add('hidden');
+                        practiceSection.classList.remove('hidden');
+                        wordContainer.style.display = 'block';
+                        
+                        // 启用输入和按钮
+                        userInputElement.disabled = false;
+                        checkBtn.disabled = false;
+                        
+                        // 重置并显示第一个单词
+                        currentIndex = 0;
+                        showCurrentWord();
+                    } else {
+                        uploadStatus.innerHTML = '<p style="color: red;">未找到有效单词数据，请检查Excel格式</p>';
+                    }
+                } catch (error) {
+                    uploadStatus.innerHTML = `<p style="color: red;">处理文件时出错: ${error.message}</p>`;
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
         // 显示当前单词
         function showCurrentWord() {
+            if (words.length === 0) return;
+            
             const currentWord = words[currentIndex];
             meaningElement.textContent = currentWord.meaning;
             partOfSpeechElement.textContent = currentWord.partOfSpeech;
@@ -208,10 +319,19 @@
             }
         }
 
+        // 显示上传界面
+        function showUploadSection() {
+            practiceSection.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+            uploadStatus.innerHTML = '';
+            excelUpload.value = '';
+        }
+
         // 事件监听
         checkBtn.addEventListener('click', checkAnswer);
         prevBtn.addEventListener('click', prevWord);
         nextBtn.addEventListener('click', nextWord);
+        showUploadBtn.addEventListener('click', showUploadSection);
         
         // 按Enter键检查答案
         userInputElement.addEventListener('keypress', function(e) {
@@ -219,9 +339,6 @@
                 checkAnswer();
             }
         });
-
-        // 初始化
-        showCurrentWord();
     </script>
 </body>
 </html>
