@@ -1,343 +1,500 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>俄语单词默写练习</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>俄语单词学习</title>
     <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #4285f4;
+            --light-color: #e8f0fe;
+            --dark-color: #174ea6;
+            --background-color: #f5f9ff;
+            --text-color: #333;
+            --button-hover: #0d47a1;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            color: #2c3e50;
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        /* 上传区域 */
+        #upload-section {
+            background-color: var(--light-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
             text-align: center;
         }
-        .word-container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
+
+        /* 单词表预览 */
+        #vocabulary-preview {
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: none;
         }
-        .word-info {
-            margin-bottom: 15px;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .meaning {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2c3e50;
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-        .part-of-speech {
-            font-style: italic;
-            color: #7f8c8d;
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
         }
-        .input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+
+        tr:nth-child(even) {
+            background-color: var(--light-color);
         }
-        input[type="text"], input[type="file"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #3498db;
+
+        .btn {
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            transition: background-color 0.3s;
+            margin: 5px;
         }
-        button:hover {
-            background-color: #2980b9;
+
+        .btn:hover {
+            background-color: var(--button-hover);
         }
-        .result {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
+
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
-        .correct {
-            background-color: #d4edda;
-            color: #155724;
-            display: block;
-        }
-        .incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-        .correct-answer {
-            font-weight: bold;
-        }
-        .progress {
-            margin-bottom: 20px;
+
+        /* 模式选择区域 */
+        #mode-selection {
             text-align: center;
-            font-size: 16px;
-            color: #7f8c8d;
+            margin-bottom: 30px;
         }
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        .upload-container {
-            background-color: white;
+
+        /* 练习区域 */
+        .quiz-section, .typing-section {
+            display: none;
+            background-color: var(--light-color);
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
+            margin-bottom: 20px;
         }
-        .upload-area {
-            border: 2px dashed #3498db;
-            border-radius: 8px;
-            padding: 30px;
-            margin: 20px 0;
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .option {
+            background-color: white;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            padding: 10px;
             cursor: pointer;
             transition: background-color 0.3s;
+            text-align: center;
         }
-        .upload-area:hover {
-            background-color: #f0f8ff;
+
+        .option:hover {
+            background-color: var(--light-color);
         }
-        .upload-icon {
-            font-size: 48px;
-            color: #3498db;
-            margin-bottom: 10px;
+
+        .correct {
+            background-color: #c8e6c9;
+            border-color: #4caf50;
         }
-        .hidden {
-            display: none;
+
+        .incorrect {
+            background-color: #ffcdd2;
+            border-color: #f44336;
         }
-        .show-upload-btn {
+
+        .typing-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .feedback {
             margin-top: 20px;
-            background-color: #6c757d;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
         }
-        .show-upload-btn:hover {
-            background-color: #5a6268;
+
+        .progress {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .next-btn {
+            display: block;
+            margin: 20px auto 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 100px;
         }
     </style>
 </head>
 <body>
-    <h1>俄语单词默写练习</h1>
-    
-    <div id="upload-section" class="upload-container">
-        <div class="upload-area" id="drop-area">
-            <div class="upload-icon">📄</div>
-            <h3>点击或拖拽Excel文件到此处</h3>
-            <p>支持.xlsx和.xls格式的Excel文件</p>
-            <input type="file" id="excel-upload" accept=".xlsx, .xls" style="display: none;">
-            <button id="select-file-btn">选择文件</button>
+    <div class="container">
+        <header>
+            <h1>俄语单词学习</h1>
+            <p>上传 Excel 文件后选择学习模式</p>
+        </header>
+
+        <!-- 上传区域 -->
+        <div id="upload-section">
+            <h2>1. 上传词汇表</h2>
+            <input type="file" id="file-upload" accept=".xlsx, .xls" class="btn"/>
+            <p id="file-info"></p>
         </div>
-        <div id="upload-status"></div>
-    </div>
-    
-    <div id="practice-section" class="hidden">
-        <div class="progress">单词 1/0</div>
-        
-        <div class="word-container">
-            <div class="word-info">
-                <div class="meaning" id="meaning">请先上传Excel单词表</div>
-                <div class="part-of-speech" id="part-of-speech"></div>
-            </div>
-            
-            <div class="input-container">
-                <input type="text" id="user-input" placeholder="请输入俄语单词" autocomplete="off" disabled>
-                <button id="check-btn" disabled>检查</button>
-            </div>
-            
-            <div class="result" id="result"></div>
+
+        <!-- 单词表预览 -->
+        <div id="vocabulary-preview" style="display: none;">
+            <h3>词汇表预览</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>俄语</th>
+                    <th>中文</th>
+                </tr>
+                </thead>
+                <tbody id="vocab-tbody"></tbody>
+            </table>
         </div>
-        
-        <div class="navigation">
-            <button id="prev-btn" disabled>上一个</button>
-            <button id="next-btn" disabled>下一个</button>
-            <button id="show-upload-btn" class="show-upload-btn">更换单词表</button>
+
+        <!-- 模式选择 -->
+        <div id="mode-selection" style="display: none;">
+            <button class="btn" id="quiz-mode-btn">选择题模式</button>
+            <button class="btn" id="typing-mode-btn">打字练习模式</button>
+            <button class="btn" id="reupload-btn" style="margin-left: 30px;">更换词表</button>
+        </div>
+
+        <!-- 选择题模式 -->
+        <div class="quiz-section" id="quiz-section">
+            <h2>选择题模式</h2>
+            <p id="quiz-question"></p>
+            <div class="options" id="quiz-options"></div>
+            <div class="feedback" id="quiz-feedback"></div>
+            <button class="btn next-btn" id="quiz-next-btn" style="display: none;">下一题</button>
+            <div class="progress" id="quiz-progress"></div>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>正确</h3>
+                    <p id="quiz-correct">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>错误</h3>
+                    <p id="quiz-incorrect">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 打字练习模式 -->
+        <div class="typing-section" id="typing-section">
+            <h2>打字练习模式</h2>
+            <p id="typing-question"></p>
+            <input type="text" class="typing-input" id="typing-input" placeholder="输入俄语单词"/>
+            <button class="btn" id="typing-check-btn">检查</button>
+            <div class="feedback" id="typing-feedback"></div>
+            <button class="btn next-btn" id="typing-next-btn" style="display: none;">下一题</button>
+            <div class="progress" id="typing-progress"></div>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>正确</h3>
+                    <p id="typing-correct">0</p>
+                </div>
+                <div class="stat-box">
+                    <h3>错误</h3>
+                    <p id="typing-incorrect">0</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- 引入 Excel 解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script>
-        let words = [];
+        /* ========== 全局变量 ========== */
+        let vocabulary = [];
+        let currentMode = '';
         let currentIndex = 0;
-        const meaningElement = document.getElementById('meaning');
-        const partOfSpeechElement = document.getElementById('part-of-speech');
-        const userInputElement = document.getElementById('user-input');
-        const checkBtn = document.getElementById('check-btn');
-        const resultElement = document.getElementById('result');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const progressElement = document.querySelector('.progress');
-        const excelUpload = document.getElementById('excel-upload');
-        const uploadStatus = document.getElementById('upload-status');
-        const wordContainer = document.querySelector('.word-container');
-        const uploadSection = document.getElementById('upload-section');
-        const practiceSection = document.getElementById('practice-section');
-        const dropArea = document.getElementById('drop-area');
-        const selectFileBtn = document.getElementById('select-file-btn');
-        const showUploadBtn = document.getElementById('show-upload-btn');
+        let quizCorrect = 0, quizIncorrect = 0;
+        let typingCorrect = 0, typingIncorrect = 0;
 
-        // 点击选择文件按钮
-        selectFileBtn.addEventListener('click', function() {
-            excelUpload.click();
-        });
+        /* ========== DOM 引用 ========== */
+        const uploadSection   = document.getElementById('upload-section');
+        const vocabPreview    = document.getElementById('vocabulary-preview');
+        const modeSelection   = document.getElementById('mode-selection');
+        const quizSection     = document.getElementById('quiz-section');
+        const typingSection   = document.getElementById('typing-section');
+        const fileUpload      = document.getElementById('file-upload');
+        const fileInfo        = document.getElementById('file-info');
+        const vocabTbody      = document.getElementById('vocab-tbody');
 
-        // 拖放功能
-        dropArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            dropArea.style.backgroundColor = '#f0f8ff';
-        });
+        /* ========== 上传处理 ========== */
+        fileUpload.addEventListener('change', handleFileUpload);
 
-        dropArea.addEventListener('dragleave', function() {
-            dropArea.style.backgroundColor = '';
-        });
-
-        dropArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            dropArea.style.backgroundColor = '';
-            if (e.dataTransfer.files.length) {
-                excelUpload.files = e.dataTransfer.files;
-                handleFileUpload();
-            }
-        });
-
-        // 文件选择变化
-        excelUpload.addEventListener('change', handleFileUpload);
-
-        function handleFileUpload() {
-            const file = excelUpload.files[0];
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
             if (!file) return;
-            
-            uploadStatus.innerHTML = `<p>正在处理文件: <strong>${file.name}</strong>...</p>`;
-            
+
+            fileInfo.textContent = `已上传：${file.name}`;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (ev) {
                 try {
-                    const data = new Uint8Array(e.target.result);
+                    const data = new Uint8Array(ev.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    // 获取第一个工作表
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    
-                    // 将工作表转换为JSON
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                    
-                    // 提取单词数据 (跳过标题行)
-                    words = [];
-                    for (let i = 1; i < jsonData.length; i++) {
-                        const row = jsonData[i];
-                        if (row.length >= 3 && row[0] && row[2]) { // 确保有足够的数据
-                            words.push({
-                                meaning: row[0],
-                                partOfSpeech: row[1] || '未知',
-                                word: row[2]
-                            });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    vocabulary = [];
+                    vocabTbody.innerHTML = '';
+                    json.forEach(row => {
+                        if (row.length >= 2) {
+                            const ru = row[0].toString().trim();
+                            const cn = row[1].toString().trim();
+                            vocabulary.push({ russian: ru, chinese: cn });
+
+                            const tr = vocabTbody.insertRow();
+                            tr.insertCell(0).textContent = ru;
+                            tr.insertCell(1).textContent = cn;
                         }
-                    }
-                    
-                    if (words.length > 0) {
-                        uploadStatus.innerHTML = `<p>成功导入 <strong>${words.length}</strong> 个单词</p>`;
-                        
-                        // 隐藏上传界面，显示练习界面
-                        uploadSection.classList.add('hidden');
-                        practiceSection.classList.remove('hidden');
-                        wordContainer.style.display = 'block';
-                        
-                        // 启用输入和按钮
-                        userInputElement.disabled = false;
-                        checkBtn.disabled = false;
-                        
-                        // 重置并显示第一个单词
-                        currentIndex = 0;
-                        showCurrentWord();
+                    });
+
+                    if (vocabulary.length) {
+                        uploadSection.style.display   = 'none';
+                        vocabPreview.style.display    = 'none';
+                        modeSelection.style.display   = 'block';
+                        alert(`成功加载 ${vocabulary.length} 个单词！`);
                     } else {
-                        uploadStatus.innerHTML = '<p style="color: red;">未找到有效单词数据，请检查Excel格式</p>';
+                        alert('未找到有效数据！请确保 Excel 有两列：俄语和中文。');
                     }
-                } catch (error) {
-                    uploadStatus.innerHTML = `<p style="color: red;">处理文件时出错: ${error.message}</p>`;
-                    console.error(error);
+                } catch (err) {
+                    alert('解析文件失败：' + err.message);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // 显示当前单词
-        function showCurrentWord() {
-            if (words.length === 0) return;
-            
-            const currentWord = words[currentIndex];
-            meaningElement.textContent = currentWord.meaning;
-            partOfSpeechElement.textContent = currentWord.partOfSpeech;
-            userInputElement.value = '';
-            resultElement.className = 'result';
-            resultElement.style.display = 'none';
-            userInputElement.focus();
-            
-            // 更新进度
-            progressElement.textContent = `单词 ${currentIndex + 1}/${words.length}`;
-            
-            // 更新按钮状态
-            prevBtn.disabled = currentIndex === 0;
-            nextBtn.disabled = currentIndex === words.length - 1;
+        /* ========== 模式选择与重新上传 ========== */
+        document.getElementById('quiz-mode-btn').addEventListener('click', () => startQuizMode());
+        document.getElementById('typing-mode-btn').addEventListener('click', () => startTypingMode());
+        document.getElementById('reupload-btn').addEventListener('click', () => {
+            // 重置所有状态并回到上传界面
+            vocabulary = [];
+            currentIndex = 0;
+            quizCorrect = quizIncorrect = typingCorrect = typingIncorrect = 0;
+
+            uploadSection.style.display = 'block';
+            vocabPreview.style.display  = 'none';
+            modeSelection.style.display = 'none';
+            quizSection.style.display   = 'none';
+            typingSection.style.display = 'none';
+            fileUpload.value = ''; // 允许再次选择同一文件
+        });
+
+        /* ========== 选择题模式 ========== */
+        function startQuizMode() {
+            currentMode = 'quiz';
+            currentIndex = 0;
+            quizCorrect = quizIncorrect = 0;
+            modeSelection.style.display = 'none';
+            quizSection.style.display   = 'block';
+            typingSection.style.display = 'none';
+            loadQuizQuestion();
         }
 
-        // 检查答案
-        function checkAnswer() {
-            const userAnswer = userInputElement.value.trim();
-            const correctAnswer = words[currentIndex].word;
-            
-            if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
-                resultElement.className = 'result correct';
-                resultElement.innerHTML = '正确!';
+        function loadQuizQuestion() {
+            if (currentIndex >= vocabulary.length) {
+                document.getElementById('quiz-question').textContent = '测验完成！';
+                document.getElementById('quiz-options').innerHTML = '';
+                document.getElementById('quiz-feedback').textContent = `得分：${quizCorrect}/${vocabulary.length}`;
+                document.getElementById('quiz-next-btn').style.display = 'none';
+                return;
+            }
+
+            const { russian, chinese } = vocabulary[currentIndex];
+            document.getElementById('quiz-question').textContent = `"${russian}" 的中文意思是？`;
+
+            // 生成选项
+            const options = generateQuizOptions(currentIndex);
+            const container = document.getElementById('quiz-options');
+            container.innerHTML = '';
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = opt.chinese;
+                div.dataset.correct = opt.correct;
+                div.addEventListener('click', selectQuizOption);
+                container.appendChild(div);
+            });
+
+            document.getElementById('quiz-feedback').textContent = '';
+            document.getElementById('quiz-next-btn').style.display = 'none';
+            document.getElementById('quiz-progress').textContent = `进度：${currentIndex + 1}/${vocabulary.length}`;
+            document.getElementById('quiz-correct').textContent = quizCorrect;
+            document.getElementById('quiz-incorrect').textContent = quizIncorrect;
+        }
+
+        function generateQuizOptions(correctIdx) {
+            const correctWord = vocabulary[correctIdx];
+            const opts = [{ chinese: correctWord.chinese, correct: true }];
+            const used = new Set([correctIdx]);
+            while (opts.length < 4) {
+                const rand = Math.floor(Math.random() * vocabulary.length);
+                if (!used.has(rand)) {
+                    opts.push({ chinese: vocabulary[rand].chinese, correct: false });
+                    used.add(rand);
+                }
+            }
+            return shuffleArray(opts);
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function selectQuizOption(e) {
+            const chosen = e.target;
+            const correct = chosen.dataset.correct === 'true';
+            document.querySelectorAll('.option').forEach(el => {
+                el.style.pointerEvents = 'none';
+                if (el.dataset.correct === 'true') el.classList.add('correct');
+                else if (el === chosen) el.classList.add('incorrect');
+            });
+
+            if (correct) {
+                quizCorrect++;
+                document.getElementById('quiz-feedback').textContent = '正确！';
+                document.getElementById('quiz-feedback').style.backgroundColor = '#c8e6c9';
             } else {
-                resultElement.className = 'result incorrect';
-                resultElement.innerHTML = `不正确。正确答案是: <span class="correct-answer">${correctAnswer}</span>`;
+                quizIncorrect++;
+                document.getElementById('quiz-feedback').textContent = `错误！正确答案是：${vocabulary[currentIndex].chinese}`;
+                document.getElementById('quiz-feedback').style.backgroundColor = '#ffcdd2';
             }
-            resultElement.style.display = 'block';
+            document.getElementById('quiz-correct').textContent = quizCorrect;
+            document.getElementById('quiz-incorrect').textContent = quizIncorrect;
+            document.getElementById('quiz-next-btn').style.display = 'block';
         }
 
-        // 上一个单词
-        function prevWord() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                showCurrentWord();
-            }
+        document.getElementById('quiz-next-btn').addEventListener('click', () => {
+            currentIndex++;
+            loadQuizQuestion();
+        });
+
+        /* ========== 打字模式 ========== */
+        function startTypingMode() {
+            currentMode = 'typing';
+            currentIndex = 0;
+            typingCorrect = typingIncorrect = 0;
+            modeSelection.style.display = 'none';
+            quizSection.style.display   = 'none';
+            typingSection.style.display = 'block';
+            loadTypingQuestion();
         }
 
-        // 下一个单词
-        function nextWord() {
-            if (currentIndex < words.length - 1) {
-                currentIndex++;
-                showCurrentWord();
+        function loadTypingQuestion() {
+            if (currentIndex >= vocabulary.length) {
+                document.getElementById('typing-question').textContent = '练习完成！';
+                document.getElementById('typing-input').style.display = 'none';
+                document.getElementById('typing-check-btn').style.display = 'none';
+                document.getElementById('typing-feedback').textContent = `得分：${typingCorrect}/${vocabulary.length}`;
+                document.getElementById('typing-next-btn').style.display = 'none';
+                return;
             }
+
+            const { russian, chinese } = vocabulary[currentIndex];
+            document.getElementById('typing-question').textContent = `"${chinese}" 的俄语单词是？`;
+            document.getElementById('typing-input').value = '';
+            document.getElementById('typing-input').style.display = 'inline-block';
+            document.getElementById('typing-check-btn').style.display = 'inline-block';
+            document.getElementById('typing-feedback').textContent = '';
+            document.getElementById('typing-next-btn').style.display = 'none';
+            document.getElementById('typing-progress').textContent = `进度：${currentIndex + 1}/${vocabulary.length}`;
+            document.getElementById('typing-correct').textContent = typingCorrect;
+            document.getElementById('typing-incorrect').textContent = typingIncorrect;
+            document.getElementById('typing-input').focus();
         }
 
-        // 显示上传界面
-        function showUploadSection() {
-            practiceSection.classList.add('hidden');
-            uploadSection.classList.remove('hidden');
-            uploadStatus.innerHTML = '';
-            excelUpload.value = '';
+        document.getElementById('typing-check-btn').addEventListener('click', checkTypingAnswer);
+        document.getElementById('typing-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkTypingAnswer();
+        });
+
+        function checkTypingAnswer() {
+            const user = document.getElementById('typing-input').value.trim();
+            const correct = vocabulary[currentIndex].russian;
+            if (user.toLowerCase() === correct.toLowerCase()) {
+                typingCorrect++;
+                document.getElementById('typing-feedback').textContent = '正确！';
+                document.getElementById('typing-feedback').style.backgroundColor = '#c8e6c9';
+            } else {
+                typingIncorrect++;
+                document.getElementById('typing-feedback').textContent = `错误！正确答案是：${correct}`;
+                document.getElementById('typing-feedback').style.backgroundColor = '#ffcdd2';
+            }
+            document.getElementById('typing-correct').textContent = typingCorrect;
+            document.getElementById('typing-incorrect').textContent = typingIncorrect;
+            document.getElementById('typing-next-btn').style.display = 'block';
         }
 
-        // 事件监听
-        checkBtn.addEventListener('click', checkAnswer);
-        prevBtn.addEventListener('click', prevWord);
-        nextBtn.addEventListener('click', nextWord);
-        showUploadBtn.addEventListener('click', showUploadSection);
-        
-        // 按Enter键检查答案
-        userInputElement.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkAnswer();
-            }
+        document.getElementById('typing-next-btn').addEventListener('click', () => {
+            currentIndex++;
+            loadTypingQuestion();
         });
     </script>
 </body>
